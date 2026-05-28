@@ -1,0 +1,18 @@
+# A1-Sync-AI — Dependencias
+# Instalar con: pip install -r requirements.txt
+
+# Entorno de RL (cualquiera de las dos funciona)
+gymnasium>=0.29.0          # versión moderna recomendada
+# gym>=0.26.0              # alternativa si gymnasium no está disponible
+
+# Álgebra lineal y arrays
+numpy>=1.24.0
+
+# (Opcional) Para visualización del entrenamiento
+ matplotlib>=3.7.0
+
+ (Opcional) Para cargar CSVs de clima en fases futuras
+# pandas>=2.0.0
+
+# (Opcional) Para consumir la API de Open-Meteo en tiempo real
+ requests>=2.31.0

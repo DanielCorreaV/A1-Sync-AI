@@ -7,6 +7,7 @@
 #      de demanda — el coordinador unificado lo consume internamente.
 #   3. Se agrega logging de métricas de demanda al final del entrenamiento
 #      para poder ver si el agente está aprendiendo a responder a tendencias.
+#   4. FIX MAS: Se añade el agente 'visual' al constructor del coordinador en build_mas.
 
 import argparse
 import sys
@@ -22,7 +23,7 @@ from agents.visual_perception_agent import VisualPerceptionAgent
 from agents.demand_prediction_agent import DemandPredictionAgent
 from agents.human_supervisor_agent import HumanSupervisor
 
-# FIX: importar ambas clases desde el único lugar donde deben vivir
+# Importar ambas clases desde el único lugar donde deben vivir
 from agents.Fleet_optimization_agent import QLearningAgent, FloatOptimizationAgentAdapter
 
 DEFAULT_EPISODES = 200
@@ -40,12 +41,15 @@ def build_mas(env: MBEnv, interactive: bool) -> tuple[QLearningAgent, FloatOptim
     Devuelve (agente_ql, coordinador) para que el loop de entrenamiento
     pueda llamar a agent.update() y agent.end_episode() directamente.
     """
-    agent     = QLearningAgent()
-    telemetry = TelemetryAgent(env)
-    visual    = VisualPerceptionAgent(env)
-    demand    = DemandPredictionAgent(visual)
-    human     = HumanSupervisor(interactive=interactive)
-    coordinator = FloatOptimizationAgentAdapter(agent, demand, telemetry, human)
+    agent       = QLearningAgent()
+    telemetry   = TelemetryAgent(env)
+    visual      = VisualPerceptionAgent(env)
+    demand      = DemandPredictionAgent(visual)
+    human       = HumanSupervisor(interactive=interactive)
+    
+    # CORRECCIÓN: Se añade 'visual' para cumplir con la nueva firma pura FIPA del coordinador
+    coordinator = FloatOptimizationAgentAdapter(agent, demand, telemetry, visual, human)
+    
     return agent, coordinator
 
 
@@ -81,7 +85,7 @@ def train(episodes: int, month: int, verbose: bool, seed: int | None) -> None:
         done = False
 
         while not done:
-            action                         = mas.coordinate_and_decide(obs)
+            action                           = mas.coordinate_and_decide(obs)
             next_obs, reward, term, tr, info = env.step(action)
             done = term or tr
 

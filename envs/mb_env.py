@@ -1,24 +1,3 @@
-"""
-envs/mb_env.py
---------------
-Entorno Gymnasium para el corredor Madre Bernarda — Zona Sur de Cartagena.
-
-CAMBIOS RESPECTO A LA VERSIÓN ORIGINAL:
-  1. Modelo de llegada de pasajeros reemplazado por distribución de Poisson
-     con tasas realistas por franja horaria, en vez de randint fijo.
-     Fuente de referencia: Transcaribe opera con headways de 4-8 min en pico,
-     lo que implica que en 5 min se acumulan entre 3-8 pax por parada en pico
-     y 1-3 en valle. El randint(6,12) original era el doble de lo razonable.
-  2. Se introducen ARRIVAL_PROFILES: tasas lambda de Poisson por franja horaria.
-     Cada ruta tiene su propio multiplicador de demanda relativa para
-     reflejar que A108 (Blas de Lezo) tiene más demanda que A105 (Las Gaviotas).
-  3. SATURATION_THRESHOLD bajado de 40 a 25 para que el agente reaccione
-     antes, acorde a la nueva escala de llegadas.
-  4. DISPATCH_CAPACITY bajado de 50 a 40 (capacidad real articulado Transcaribe).
-  5. MAX_QUEUE bajado de 200 a 120 para mantener la normalización coherente.
-  6. La penalización W_WASTE se vuelve más suave (0.15) para no castigar
-     tanto despachos preventivos en horas de transición.
-"""
 
 import random
 import numpy as np
@@ -62,9 +41,7 @@ except ImportError:
                 metadata = {}
 
 
-# -----------------------------------------------------------------------
 # Constantes del entorno
-# -----------------------------------------------------------------------
 ROUTES      = ["A103", "A104", "A105", "A107", "A108"]
 N_ROUTES    = len(ROUTES)
 ROUTE_INDEX = {r: i for i, r in enumerate(ROUTES)}
@@ -122,7 +99,6 @@ ARRIVAL_PROFILES: list[tuple[int, int, float]] = [
 ]
 
 # Multiplicador de demanda relativa por ruta
-# A108 (Blas de Lezo) y A103 (Olaya) son las más cargadas históricamente
 ROUTE_DEMAND_FACTOR: dict[str, float] = {
     "A103": 1.10,   # Olaya Herrera — alta densidad residencial
     "A104": 0.90,   # San Fernando — demanda media
@@ -167,9 +143,7 @@ class MBEnv(gym.Env):
         self._step_count:     int = 0
         self._episode_rewards: list[float] = []
 
-    # ═══════════════════════════════════════════════════════════════════
     # API GYMNASIUM
-    # ═══════════════════════════════════════════════════════════════════
 
     def reset(self, *, seed: int | None = None, options: dict | None = None):
         if seed is not None:
@@ -185,7 +159,6 @@ class MBEnv(gym.Env):
         for i in range(PORTAL_INITIAL):
             self._fleet[i].state = "portal"
 
-        # Fila inicial realista: 2-4 pasajeros residuales nocturnos
         # wait_ticks: ticks consecutivos con al menos 1 pasajero esperando
         self._routes = {r: {"fila": random.randint(2, 4), "wait_ticks": 1} for r in ROUTES}
 
@@ -267,9 +240,7 @@ class MBEnv(gym.Env):
     def close(self):
         pass
 
-    # ═══════════════════════════════════════════════════════════════════
     # LÓGICA INTERNA DEL MUNDO
-    # ═══════════════════════════════════════════════════════════════════
 
     def _tick_world(self) -> None:
         mult = self._get_traffic_mult()

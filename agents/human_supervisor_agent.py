@@ -1,26 +1,20 @@
-# agents/human_supervisor_agent.py
 
 from core.fipa import FipaPerformative, ACLMessage
 
 class HumanSupervisor:
-    """
-    Agente Supervisor Humano.
-    Permite la interceptación y veto de decisiones del sistema multiagente.
-    """
+
     def __init__(self, interactive: bool = False):
         self.name = "Human_supervisor"
-        self.interactive = interactive  # Define si se detiene a pedir input en consola
+        self.interactive = interactive  
 
     def receive_message(self, message: ACLMessage) -> ACLMessage:
         if message.performative == FipaPerformative.PROPOSE and "sugerir despliegue" in message.content:
-            # Si no es interactivo (ej. modo Entrenamiento), aprueba en milisegundos de forma automática
             if not self.interactive:
                 return ACLMessage(self.name, message.sender, FipaPerformative.ACCEPT_PROPOSAL, "auto_aprobado")
             
-            # ═══ PANEL INTERACTIVO DE CONSOLA (Modo Demo) ═══
             print("\n" + "═"*60)
-            print(f"📥 [FIPA: PROPOSE] Mensaje recibido de: {message.sender}")
-            print(f"💡 PROPUESTA MAS: {message.content.upper()}")
+            print(f" [FIPA: PROPOSE] Mensaje recibido de: {message.sender}")
+            print(f" PROPUESTA MAS: {message.content.upper()}")
             print("═"*60)
             
             ans = ""
